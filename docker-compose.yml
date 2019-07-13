@@ -1,0 +1,10 @@
+version: '3'
+services:
+  dv:
+    image: "python:3"
+    volumes:
+     - .:/app
+     - ./start:/start
+    command: /start
+    stdin_open: true
+    tty: true
