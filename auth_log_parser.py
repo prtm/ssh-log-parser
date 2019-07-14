@@ -43,57 +43,56 @@ def parse_reverse_mapping_ipv4(line):
 def get_fails_or_addrs(args, is_reverse_mapping):
     results = {}
     pattern = "reverse mapping checking " if is_reverse_mapping else "Failed password for "
-    with open('auth.log', 'r') as infile:
-        for line in infile:
-            # filter by pattern
-            if pattern in line:
-                # parse data date, user or uri, ip address
-                on_date = parse_date(line)
-                if args.date and on_date != str(args.date):
-                    continue
-                main_key = parse_addr(
-                    line) if is_reverse_mapping else parse_user(line)
-                from_ip = parse_reverse_mapping_ipv4(
-                    line) if is_reverse_mapping else parse_fails_ipv4(line)
+    for line in args.file:
+        # filter by pattern
+        if pattern in line:
+            # parse data date, user or uri, ip address
+            on_date = parse_date(line)
+            if args.date and on_date != str(args.date):
+                continue
+            main_key = parse_addr(
+                line) if is_reverse_mapping else parse_user(line)
+            from_ip = parse_reverse_mapping_ipv4(
+                line) if is_reverse_mapping else parse_fails_ipv4(line)
 
-                # increase counter or add results
-                if on_date in results:
-                    results_on_date = results[on_date]
-                    if main_key in results_on_date:
-                        user_data = results_on_date[main_key]
-                        if 'TOTAL' in user_data:
-                            user_data['TOTAL'] += 1
-                        else:
-                            user_data['TOTAL'] = 1
-                        if 'IPLIST' in user_data:
-                            iplist = user_data['IPLIST']
-                            if from_ip in iplist:
-                                iplist[from_ip] += 1
-                            else:
-                                iplist[from_ip] = 1
-                        else:
-                            iplist = {
-                                from_ip: 1
-                            }
-                        user_data['IPLIST'] = iplist
+            # increase counter or add results
+            if on_date in results:
+                results_on_date = results[on_date]
+                if main_key in results_on_date:
+                    user_data = results_on_date[main_key]
+                    if 'TOTAL' in user_data:
+                        user_data['TOTAL'] += 1
                     else:
-                        user_data = {
-                            'TOTAL': 1,
-                            'IPLIST': {
-                                from_ip: 1
-                            }
+                        user_data['TOTAL'] = 1
+                    if 'IPLIST' in user_data:
+                        iplist = user_data['IPLIST']
+                        if from_ip in iplist:
+                            iplist[from_ip] += 1
+                        else:
+                            iplist[from_ip] = 1
+                    else:
+                        iplist = {
+                            from_ip: 1
                         }
-                    results_on_date[main_key] = user_data
-                    results[on_date] = results_on_date
+                    user_data['IPLIST'] = iplist
                 else:
-                    results[on_date] = {
-                        main_key: {
-                            'TOTAL': 1,
-                            'IPLIST': {
-                                from_ip: 1
-                            }
+                    user_data = {
+                        'TOTAL': 1,
+                        'IPLIST': {
+                            from_ip: 1
                         }
                     }
+                results_on_date[main_key] = user_data
+                results[on_date] = results_on_date
+            else:
+                results[on_date] = {
+                    main_key: {
+                        'TOTAL': 1,
+                        'IPLIST': {
+                            from_ip: 1
+                        }
+                    }
+                }
     return results
 
 
@@ -107,12 +106,15 @@ def main():
                         help="Specific date data - format YYYY-MM-DD",
                         required=False,
                         type=valid_date)
-
+    parser.add_argument('--file', type=argparse.FileType('r'),
+                        help="path of the file")
     args = parser.parse_args()
 
     # print results
     pp.pprint(get_fails_or_addrs(args, is_reverse_mapping=False))
+    args.file.seek(0)
     pp.pprint(get_fails_or_addrs(args, is_reverse_mapping=True))
+    args.file.close()
 
 
 if __name__ == "__main__":
