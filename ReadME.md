@@ -1,7 +1,7 @@
-cautious-robot
+ssh-log-parser
 =========
 
-### cautious-robot is a script to parse ssh logs. It can parse date, users, uri, IPv4 addresses.
+### ssh-log-parser is a script to parse ssh logs. It can parse date, users, uri, IPv4 addresses.
 
 Help:
 
