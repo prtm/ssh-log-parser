@@ -107,7 +107,7 @@ def main():
                         required=False,
                         type=valid_date)
     parser.add_argument('--file', type=argparse.FileType('r'),
-                        help="path of the file")
+                        help="file path")
     args = parser.parse_args()
 
     # print results
